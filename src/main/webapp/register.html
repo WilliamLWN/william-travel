@@ -1,0 +1,234 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>黑马旅游-注册</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/common.css">
+    <link rel="stylesheet" href="css/register.css">
+	<script src="js/jquery-3.3.1.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+	<style>
+        #msg {
+            color: red;
+            font-size: 12px;
+        }
+		
+		 #sendSmsCode {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<!--引入头部-->
+<div id="header">
+</div>
+<!-- 头部 end -->
+<div class="rg_layout" id="app">
+    <div class="rg_form clearfix">
+        <div class="rg_form_left">
+            <p>新用户注册</p>
+            <p>USER REGISTER</p>
+        </div>
+        <div class="rg_form_center">
+            <!--注册表单-->
+            <form id="registerForm">
+                <table style="margin-top: 25px;width: 558px">
+                    <tr>
+                        <td class="td_left">
+                            <label for="username">用户名</label>
+                        </td>
+                        <td class="td_right">
+                            <input type="text" id="username" v-model="user.username" @blur="checkUsername()" placeholder="请输入用户名">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="td_left">
+                            <label for="telephone">手机号</label>
+                        </td>
+                        <td class="td_right">
+                            <input type="text" id="telephone" v-model="user.telephone" placeholder="请输入您的手机号">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="td_left">
+                            <label for="password">密码</label>
+                        </td>
+                        <td class="td_right">
+                            <input type="password" id="password" v-model="user.password" placeholder="请输入密码" autocomplete="off">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="td_left">
+                            <label for="smsCode">验证码</label>
+                        </td>
+                        <td class="td_right check">
+                            <input type="text" maxlength="6" id="smsCode" v-model="smsCode" class="check" placeholder="请输入验证码">
+                            <input type="button" id="sendSmsCode" @click="sendSms()" :value="btnText" :disabled="btnDisabled" class="btn btn-success"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="td_left">
+                        </td>
+                        <td class="td_right check">
+                            <input type="button" class="submit" value="注册" @click="userSubmit()">
+                            <span id="msg" :style="{color:infoColor}">{{msg}}</span>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+        <div class="rg_form_right">
+            <p>
+                已有账号？
+                <a href="login.html">立即登录</a>
+            </p>
+        </div>
+    </div>
+</div>
+<!--引入尾部-->
+<div id="footer">
+</div>
+<script src="js/include.js"></script>
+
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data: {
+            //验证码
+            smsCode:'',
+            //用户实体类
+            user: {
+                username:'',
+                password:'',
+                telephone:''
+            },
+
+            //错误信息
+            msg:'',
+            //提示信息的颜色
+            infoColor:"red",
+            //发送按钮上面的文字
+            btnText: '发送手机验证码',
+            //按钮可用
+            btnDisabled: false
+        },
+        methods: {
+            //注册提交
+            userSubmit() {
+
+                let loginMap = {
+                    smsCode: this.smsCode,
+                    user: this.user
+                }
+
+                axios.post("user/register", loginMap)
+                   .then(response=>{
+                       //获取返回结果对象
+                     let resultInfo = response.data;
+
+                       //判断注册结果
+                       if(resultInfo.success) {
+                        location.href = "register_ok.html";
+                       } else {
+                           //将颜色设置为红色
+                           this.infoColor = "red";
+                           //注册失败，将错误信息显示在span中
+                           this.msg = resultInfo.message;
+                       }
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            },
+
+            checkUsername() {
+                // 1. 获取this.user.username的值
+                let username = this.user.username;
+                // 2. 如果为空显示，则给this.msg赋值为"用户名不能为空"
+                if(username.trim()==""){
+                    this.msg="用户名不能为空";
+                    this.infoColor="red";
+                    return;
+                }
+                // 3. 否则后台访问服务器查询用户的方法，传递用户名为参数
+                //注意：在web应用中没有斜杠开头的路径是属于相对路径， /开头路径是属于绝对路径。 相对路径在请求转发的时候当前程序所在的
+                //路径会发生变化的，容易导致找不到资源。所以老师推荐大家使用绝对路径
+                let url = `/user/findByUsername?username=${this.user.username}`;
+                axios.get(url)
+                   .then(response=>{
+                     let resultInfo = response.data;
+                       //不管是否可以使用，提示的信息都应该显示出来
+                       // 4. 回调函数中获取响应的数据，并且将返回的数据赋值给this.msg
+                       this.msg = resultInfo.message;
+                       if(resultInfo.success) {
+                           this.infoColor = "green";
+                       } else {
+                           this.infoColor = "red";
+                       }
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            },
+
+            sendSms() {
+                // 1. 获取用户输入的手机号
+                let telephone = this.user.telephone;
+                // 2. 使用正则表达式判断手机格式是否正确，正则表达式：/^1[35789]\d{9}$/
+                let reg = /^1[35789]\d{9}$/;
+                // 3. 如果手机号格式错误，则在msg的span中提示：手机格式有误。并且返回。
+                if(!reg.test(telephone)) {
+                   this.infoColor = "red";
+                   this.msg = "手机号格式错误";
+                   return;
+                }
+
+                // 4. 如果正确则发送后台异步请求，提供电话号码做为参数
+                axios.get("user/sendSms?telephone=" + telephone)
+                   .then(response=>{
+                     let resultInfo = response.data;
+                       // 5. 在回调函数中判断是否发送成功
+                       this.msg = resultInfo.message;
+
+                       if(resultInfo.success) {
+                           // 6. 如果发送成功设置infoColor为绿色，否则为红色。
+                           this.infoColor = "green";
+
+                           this.countDown(30);
+                       } else {
+                           this.infoColor = "red";
+                       }
+
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            },
+
+            //验证码倒计时函数
+            countDown(num) {
+                //先按钮变成不可点击
+                this.btnDisabled = true;
+                //开启定时任务，每一秒钟调用一次
+                let timerId = setInterval(()=>{
+                    num--;
+                    this.btnText = num + "秒后重新发送";
+                    if(num == 0) {
+                        //按钮变成可以点击
+                        this.btnDisabled = false;
+                        this.btnText = "重新发送";
+                        //清除定时任务
+                        clearInterval(timerId);
+                    }
+                },1000);
+            }
+        }
+
+    });
+</script>
+</body>
+</html>

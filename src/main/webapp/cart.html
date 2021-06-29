@@ -1,0 +1,131 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="js/jquery-3.3.1.js"></script>
+
+    <script src="js/include.js"></script>
+
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+
+    <title>购物车列表</title>
+    <style>
+        .order-button {
+            background-color: #ea4a36;
+            height: 40px;
+            width: 120px;
+            color: white;
+            font-size: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<!--引入头部-->
+<div id="header"></div>
+<!--主体部分-->
+<div class="container" id="cart">
+    <div class="row" style="margin: 100px 200px;text-align: center" v-if="Object.keys(cart.cartItemMap).length==0">
+        购物车内暂时没有商品哦！
+    </div>
+
+    <div v-else>
+        <div class="row">
+            <div style="margin: 20px auto 0;">
+                <div style="font-weight: bold;font-size: 15px;margin-bottom: 10px">商品数量：{{cart.cartNum}}</div>
+                <table class="table">
+                    <tbody>
+                    <tr bgcolor="#f5f5f5" class="table-bordered">
+                        <th>图片</th>
+                        <th>商品</th>
+                        <th>价格</th>
+                        <th>数量</th>
+                        <th>小计</th>
+                        <th>操作</th>
+                    </tr>
+                    <tr class="table-bordered" v-for="cartItem in cart.cartItemMap">
+                        <td width="180" width="40%">
+                            <img :src="cartItem.route.rimage" width="170" height="100">
+                        </td>
+                        <td width="38%">
+                            <a target="_blank" :href=`route_detail.html?rid=${cartItem.route.rid}`> {{cartItem.route.rname}}</a>
+                        </td>
+                        <td width="10%">
+                            ￥{{cartItem.route.price}}
+                        </td>
+                        <td width="14%">
+                            ×{{cartItem.num}}
+                        </td>
+                        <td width="15%">
+                            <span class="subtotal">￥{{cartItem.subTotal}}</span>
+                        </td>
+                        <td>
+                            <a href="javascript:;" class="delete" @click="deleteCartItem(cartItem.route.rid)">删除</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <div style="text-align:right;">
+                    商品金额: <strong style="color:#ff6600;">￥{{cart.cartTotal}}元</strong>
+                </div>
+                <div style="text-align:right;margin-top:10px;margin-bottom:10px;">
+                    <a href="order_info.html">
+                        <input type="button" width="100" value="结算" name="submit" border="0" class="order-button">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="footer"></div>
+
+<script type="text/javascript">
+
+    new Vue({
+        el: "#cart",
+        data: {
+            //购物车
+            cart: {}
+        },
+        methods: {
+            findAll() {
+                axios.get("/cart/findAll")
+                    .then(response => {
+                        let resultInfo = response.data;
+                        if (resultInfo.success) {
+                            this.cart = resultInfo.data;
+                        } else {
+                            //没有登陆情况下
+                            alert(resultInfo.message);
+                            location.href = "/login.html";
+                        }
+                    })
+                    .catch(error => {
+                        alert(error);
+                        console.log(error);
+                    })
+            },
+            deleteCartItem(rid) {
+                axios.get("/cart/deleteCartItem?rid=" + rid)
+                   .then(response=>{
+                     this.cart = response.data;
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            }
+        },
+        mounted() {
+            this.findAll();
+        }
+    })
+</script>
+</body>
+</html>

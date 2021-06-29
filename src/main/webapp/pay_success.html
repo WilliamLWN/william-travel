@@ -1,0 +1,51 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/webbase.css">
+    <link rel="stylesheet" href="css/pages-paysuccess.css">
+
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/include.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+	
+	<script src="js/getParameter.js"></script>
+
+    <title>微信支付</title>
+</head>
+<body>
+<!--引入头部-->
+<header id="header"></header>
+<div class="container-fluid" id="app">
+    <div class="cart py-container" >
+        <!--主内容-->
+        <div class="paysuccess" style="height: 500px">
+            <div class="success">
+                <h3><img src="img/right.png" width="28" height="28" style="display: inline">　恭喜您，支付成功啦！</h3>
+                <div class="paydetail">
+                    <p>支付方式：微信支付</p>
+                    <p>支付金额：￥{{total}}元</p>
+                    <!--<p class="button"><a href="#" class="sui-btn btn-xlarge btn-danger">查看订单</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="index.html" class="sui-btn btn-xlarge ">继续购物</a></p>-->
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!--引入尾部-->
+<footer id="footer"></footer>
+</body>
+<script type="text/javascript">
+    new Vue({
+        el:"#app",
+        data: {
+            total:0
+        },
+        created() {
+            this.total = getParameter("total");
+        }
+    })
+</script>
+</html>

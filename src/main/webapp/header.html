@@ -1,0 +1,94 @@
+<script src="js/vue.js"></script>
+<script src="js/axios-0.19.0.js"></script>
+<meta charset="utf-8">
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="css/common.css">
+
+<div id="headerContainer">
+    <!-- 头部 start -->
+    <div class="top_banner">
+        <div class="shortcut">
+                <!-- 未登录状态  -->
+                <div class="login_out" v-if="!isLogged">
+                    <a href="login.html">登录</a>
+                    <a href="register.html">注册</a>
+                </div>
+                <!-- 登录状态  -->
+                <div class="login" v-else>
+                    <span id="welcome">欢迎您！{{user.username}}</span>
+                    <a href="cart.html" class="collection">购物车</a>
+                    <a href="javascript:;" @click="logout()">退出</a>
+                </div>
+        </div>
+    </div>
+    <!-- 首页导航 -->
+    <div class="navitem">
+        <ul class="nav">
+             <li><a href="index.html">首页</a></li>
+        <li v-for="category in categories"><a :href=`route_list.html?cid=${category.cid}`>{{category.cname}}</a></li>
+        <li><a href="favorite_rank.html">收藏排行榜</a></li>
+        </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    new Vue({
+        el:"#headerContainer",
+        data: {
+            isLogged:false,
+            user:{},
+            categories: []
+        },
+        methods: {
+            showLoginStatus() {
+                // 1. 后台访问服务器是否登录
+                axios.get("/user/isLogged")
+                   .then(response=>{
+                       let resultInfo = response.data;
+                       // 2. 获取服务器返回的数据
+                       if(resultInfo.success) {
+                           // 3. 如果已经登录，则获取user对象，更新user数据
+                           this.user = resultInfo.data;
+                           // 4. 给this.isLogged赋值为resultInfo.success的值
+                           this.isLogged = true;
+                       }
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            },
+            logout() {
+                // 1. 访问user/logout方法
+                axios.get("/user/logout")
+                    .then(response=>{
+                        //this.modelData = response.data;
+                        // 2. 如果服务器状态码返回200，则操作成功
+                        if(response.status == 200) {
+                            // 3. 在回调函数中直接跳转到login.html
+                            location.href = "/login.html";
+                        }
+                    })
+                    .catch(error=>{
+                        alert(error);
+                        console.log(error);
+                    })
+            },
+            loadNavItems() {
+                //1.发送请求获取所有的类别
+                axios.get("category/findAll")
+                   .then(response=>{
+                     this.categories = response.data;
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            }
+
+        },
+        created() {
+            this.showLoginStatus();
+            this.loadNavItems();
+        }
+    })
+</script>

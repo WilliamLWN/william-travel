@@ -1,0 +1,177 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="css/webbase.css">
+    <link rel="stylesheet" type="text/css" href="css/pages-getOrderInfo.css">
+
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/include.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+
+    <title>结算页</title>
+</head>
+<body>
+<!--引入头部-->
+<header id="header"></header>
+<div class="container-fluid" id="app">
+    <form id="orderForm">
+        <!-- 头部 end -->
+        <div class="cart py-container">
+            <!--主内容-->
+            <div class="checkout py-container">
+                <div class="step-tit">
+                    <h4 style="font-weight: bold">填写并核对订单信息</h4>
+                </div>
+                <div class="checkout-steps">
+                    <!--收件人信息-->
+                    <div class="step-tit">
+                        <h5>收件人信息</h5>
+                    </div>
+                    <div class="step-cont">
+                        <div class="addressInfo">
+                            <ul class="addr-detail">
+                                <li class="addr-item">
+                                    <div>
+                                        <div class="con address" v-for="address in addressList">
+										        <input type="radio" name="addressId" v-model="aid" :value="address.aid">
+										        {{address.contact}} {{address.address}}
+												<span>{{address.telephone}}</span>
+										     </div>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="hr"></div>
+
+                    </div>
+                    <div class="hr"></div>
+                    <!--支付和送货-->
+                    <div class="payshipInfo">
+                        <div class="step-tit">
+                            <h5>支付方式</h5>
+                        </div>
+                        <div class="step-cont">
+                            <ul class="payType">
+                                <li class="selected">微信付款</li>
+                            </ul>
+                        </div>
+                        <div class="hr"></div>
+                        <div class="step-tit">
+                            <h5>送货清单</h5>
+                        </div>
+                        <div class="step-cont">
+                            <ul class="send-detail">
+                                <li>
+                                    <div class="sendGoods">
+                                        <ul class="yui3-g" v-for="cartItem in cart.cartItemMap">
+                                            <li class="yui3-u-1-6">
+                                                <span><img :src="cartItem.route.rimage"/></span>
+                                            </li>
+                                            <li class="yui3-u-7-12" style="padding: 0px 8px">
+                                                <div class="desc">{{cartItem.route.rname}}</div>
+                                            </li>
+                                            <li class="yui3-u-1-12">
+                                                <div class="price">￥{{cartItem.route.price}}</div>
+                                            </li>
+                                            <li class="yui3-u-1-12">
+                                                <div class="num">&times;{{cartItem.num}}</div>
+                                            </li>
+                                            <li class="yui3-u-1-12">
+                                                <div class="exit">￥{{cartItem.subTotal}}</div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="hr"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix trade">
+                <div class="fc-price">
+                   <span class="number">{{cart.cartNum}}</span>件商品，应付金额:　<span class="price">¥{{cart.cartTotal}}</span>
+                </div>
+            </div>
+            <div class="submit">
+                <button class="sui-btn btn-danger btn-xlarge" @click="subOrder()" type="button">提交订单</button>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- 底部栏位 -->
+<footer id="footer"></footer>
+</body>
+
+<script type="text/javascript">
+    new Vue({
+        el:"#app",
+        data: {
+            addressList:[],  //用户的地址列表
+            cart:{},  //用户的购物车
+            aid:0   //当前选中的地址的id
+        },
+        methods: {
+            prepareOrder() {
+                axios.get("/order/prepareOrder")
+                   .then(response=>{
+                     let resultInfo = response.data;
+                     let map = resultInfo.data;
+                       //2. 判断请求的结果是否成功
+                       if(resultInfo.success) {
+                           //3. 成功把数据赋予给cart、addressList
+                           this.addressList = map.addressList;
+                           this.cart = map.cart;
+
+                           //遍历所有的地址，找到默认选中的地址
+                           for(let address of this.addressList) {
+                               if(address.isdefault == 1) {
+                                   this.aid = address.aid;
+                                   break;
+                               }
+                           }
+                       } else {
+                           //没有登陆情况
+                           alert(resultInfo.message);
+                           location.href = "/login.html";
+                       }
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            },
+            subOrder() {
+                // 1. 发送请求到order/subOrder地址，传递aid做为参数
+                axios.get(`/order/subOrder?aid=${this.aid}`)
+                   .then(response=>{
+                       // 2. 获取服务器返回的ResultInfo对象
+                     let resultInfo = response.data;
+                       // 3. 如果成功，则从中获取订单对象
+                       if(resultInfo.success) {
+                           // 4. 获取订单的oid和total价格，跳转到pay.html上
+                           let order = resultInfo.data;
+                           location.href = `/pay.html?oid=${order.oid}&total=${order.total}`;
+                       } else {
+                           // 5. 如果失败则跳转到登录页面
+                           alert(resultInfo.message);
+                           location.href = "/login.html";
+                       }
+                   })
+                        .catch(error=>{
+                       alert(error);
+                       console.log(error);
+                   })
+
+            }
+        },
+        mounted() {
+            this.prepareOrder();
+        }
+    })
+</script>
+</html>

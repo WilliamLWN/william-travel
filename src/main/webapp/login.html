@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>黑马旅游网-登录</title>
+	<script src="js/jquery-3.3.1.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/login.css">
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+</head>
+
+<body>
+<!--引入头部-->
+<div id="header">
+</div>
+<!-- 头部 end -->
+<div id="app">
+    <section id="login_wrap">
+        <div class="fullscreen-bg" style="background: url(images/login_bg.png);height: 532px;">
+
+        </div>
+        <div class="login-box">
+            <div class="title">
+                <img src="images/login_logo.png" alt="">
+                <span>欢迎登录黑马旅游账户</span>
+            </div>
+            <div class="login_inner">
+                <!--登录错误提示消息-->
+                <div id="errorMsg" class="alert alert-warning alert-dismissible" style="align-content: center" :style="{color:infoColor}">{{msg}}</div>
+                <form id="loginForm">
+                    <input name="username" type="text" placeholder="请输入账号" ref="username" autocomplete="off" v-model="user.username">
+                    <input name="password" type="password" placeholder="请输入密码" ref="password" autocomplete="off" v-model="user.password">
+                    <div class="verify">
+                        <input name="check" type="text" placeholder="请输入验证码" ref="smsCode" autocomplete="off" v-model="user.smsCode">
+                        <button type="button" class="btn btn-success btn-sm" @click="sendSms()" :disabled="btnDisabled"><span class="glyphicon glyphicon-phone"/>{{btnText}}</button>
+                    </div>
+                    <div class="submit_btn">
+                        <button type="button" id="btnLogin" @click="login()">登录</button>
+                        <div class="auto_login">
+                            <input type="checkbox" name="" class="checkbox">
+                            <span>自动登录</span>
+                        </div>
+                    </div>
+                </form>
+                <div class="reg">没有账户？<a href="register.html">立即注册</a></div>
+            </div>
+        </div>
+    </section>
+</div>
+<!--引入尾部-->
+<div id="footer">
+</div>
+<script src="js/include.js"></script>
+</body>
+<script type="text/javascript">
+    new Vue({
+        el:"#app",
+        data: {
+            user:{
+                username:'',
+                password:'',
+                smsCode:''
+            },
+            btnText:"发送短信",
+            btnDisabled:false,
+            msg:"请输入账号和密码",
+            infoColor:"black"
+        },
+        methods: {
+            sendSms() {
+                // 1. 判断用户名是否为空
+                let username = this.user.username;
+                // 1.1. 如果为空，设置infoColor为红色，设置msg的信息
+                if(username == null || username == "") {
+                    this.infoColor = "red";
+                    this.msg = "用户名不能为空";
+                    // 1.2. 通过this.$refs.username让用户名获取焦点，不再继续
+                    this.$refs.username.focus();
+                    return;
+                }
+                // 2. 调用后台发送短信的方法，传送用户名做为参数
+                axios.get("/user/loginSendMessage?username="+username)
+                   .then(response=>{
+                       // 2.1. 获取返回的结果
+                     let resultInfo = response.data;
+                     if(resultInfo.success) {
+                         // 2.2. 如果发送成功，显示为绿色，并且调用倒计时的方法
+                         this.infoColor = "green";
+                         this.countDown(10);
+                     } else {
+                       // 2.3. 否则设置为红色
+                         this.infoColor = "red";
+                       // 2.4. 把发送的结果显示在msg标签中
+                         this.msg = resultInfo.message;
+                     }
+                   })
+                        .catch(error=>{
+                       alert(error);
+                       console.log(error);
+                   })
+            },
+            countDown(num) {
+                //先按钮变成不可点击
+                this.btnDisabled=true;
+                //开启定时任务，每一秒钟调用一次
+                let timerId = setInterval(()=>{
+                    num--;
+                    this.btnText=num+"秒之后重新发送";
+                    if(num==0){
+                        //按钮变成可以点击
+                        this.btnDisabled=false;
+                        this.btnText="重新发送";
+                        //清除定时任务
+                        clearInterval(timerId);
+                    }
+                },1000);
+            },
+            login() {
+                // 1. 访问后台服务器，提交form做为参数
+                axios.post("/user/login", this.user)
+                   .then(response=>{
+                       // 2. 获取返回的数据
+                       let resultInfo = response.data;
+                       // 3. 如果登录成功，跳转到index.html页面
+                       if(resultInfo.success) {
+                           location.href = "/index.html";
+                       } else {
+                           // 4. 否则设置颜色为红色
+                           this.infoColor = "red";
+                           // 5. 并且显示登录错误信息
+                            this.msg = resultInfo.message;
+                       }
+
+                   })
+                        .catch(error=>{
+                       alert(error);
+                       console.log(error);
+                   })
+
+            }
+        }
+    })
+</script>
+</html>

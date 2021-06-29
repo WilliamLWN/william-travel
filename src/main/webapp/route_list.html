@@ -1,0 +1,125 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>线路列表</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/common.css">
+	
+    <link rel="stylesheet" href="css/search.css">
+    <link rel="stylesheet" href="css/zpageNav.css">
+
+    <script src="js/jquery-3.3.1.js"></script>
+    <!--getParameter.js可以获取url上的参数-->
+    <script src="js/getParameter.js"></script>
+
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+    <script src="js/include.js"></script>
+    <!--分页插件-->
+    <script src="js/zpageNav.js"></script>
+</head>
+<body>
+<div id="header"></div>
+<div class="page_one" id="app">
+    <div class="contant">
+        <div class="crumbs">
+            <img src="images/search.png" alt="">
+            <p>黑马旅行><span>搜索结果</span></p>
+        </div>
+        <div class="search">
+            <input id="rname" name="rname" v-model="rname" type="text" placeholder="请输入路线名称" class="search_input" autocomplete="off">
+            <a href="javascript:;" @click="searchPage()"  class="search-button">搜索</a>
+        </div>
+        <div class="hot_pic">
+            <img src="images/hot_tel.jpg" alt="">
+        </div>
+        <div class="hot_tel">
+            <p class="hot_time">客服热线(9:00-6:00)</p>
+            <p class="hot_num">400-618-9090</p>
+        </div>
+
+        <div class="xinxi clearfix">
+            <div class="left">
+                <div class="header">
+                    <span>商品信息</span>
+                    <span class="jg">价格</span>
+                </div>
+                <ul>
+                    <li v-for="route in pageInfo.list">
+                            <div class="img"><img :src="route.rimage" alt=""></div>
+                            <div class="text1">
+                                <p>{{route.rname}}</p>
+                                <br/>
+                                <p>{{route.routeIntroduce}}</p>
+                            </div>
+                            <div class="price">
+                                <p class="price_num">
+                                    <span>&yen;</span>
+                                    <span>{{route.price}}</span>
+                                    <span>起</span>
+                                </p>
+                                <p><a :href=`route_detail.html?rid=${route.rid}`>查看详情</a></p>
+                            </div>
+                        </li>
+                </ul>
+                    <div>
+                        <!--  page:当前页
+                               total:总记录数
+                                page-size:页面的大小
+                                 maxPage
+                                 changePage(pageNum)方法的当前页pageNum参数在zpage-nav自动导入
+                                 -->
+                        <zpage-nav :page="pageInfo.pageNum" :total="pageInfo.total" :page-size="pageInfo.pageSize" :max-page="10" @pageHandler="changePage"></zpage-nav>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="footer"></div>
+</body>
+</html>
+<script type="text/javascript">
+
+    new Vue({
+        el:"#app",
+        data:{
+            pageInfo:{},
+            cid:0,
+            rname: ""
+        },
+        methods:{
+            changePage(pageNum){
+                //从url地址栏获取到cid   旅游路线的类别id的获取，导入getParameter.js
+                if(getParameter("cid")!=null){
+                    //页面传递cid过来
+                    this.cid=getParameter("cid");
+                }else{
+                    this.cid=0;
+                }
+
+                //2. 发送请求
+                axios.get(`/route/findRouteListByCid?cid=${this.cid}&pageNum=${pageNum}&rname=${this.rname}`).then(resp=>{
+                    //把请求过来的数据赋予给pageInfo
+                    this.pageInfo = resp.data;
+                })
+            },
+            searchPage() {
+                axios.get(`/route/findRouteListByCid?rname=${this.rname}`)
+                   .then(response=>{
+                     this.pageInfo = response.data;
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            }
+        },
+        created(){
+            this.changePage(1);
+        }
+    })
+
+
+</script>

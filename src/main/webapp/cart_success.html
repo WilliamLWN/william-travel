@@ -1,0 +1,84 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>添加到购物车成功</title>
+
+    <script src="js/jquery-3.3.1.js"></script>
+
+    <script src="js/include.js"></script>
+
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+
+</head>
+<body>
+<div id="header"></div>
+<div class="container" id="cart">
+    <div style="margin: 20px auto 0;">
+        <div style="font-weight: bold;font-size: 15px;margin-bottom: 10px">添加到购物车成功...</div>
+        <table class="table">
+            <tbody>
+            <tr bgcolor="#f5f5f5" class="table-bordered">
+                <th>图片</th>
+                <th>商品</th>
+                <th>价格</th>
+                <th>数量</th>
+                <th>小计</th>
+            </tr>
+            <tr class="table-bordered">
+                <td>
+                    <img :src="route.rimage" width="170" height="100">
+                </td>
+                <td width="45%">
+                    <a target="_blank" :href=`route_detail.html?rid=${route.rid}`>{{route.rname}}</a>
+                </td>
+                <td width="10%">
+                    ￥{{route.price}}
+                </td>
+                <td width="14%">
+                    ×{{cartItem.num}}
+                </td>
+                <td width="15%">
+                    <span style="color:red; font-weight: bolder">￥{{cartItem.subTotal}}</span>
+                </td>
+            </tr >
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<!--引入尾部-->
+<div id="footer"></div>
+<script type="text/javascript">
+
+    new Vue({
+        el:"#cart",
+        data: {
+            //表示一个购物车项
+            cartItem: {},
+            //线路对象
+            route:{}
+        },
+        methods: {
+            showCartItem() {
+                axios.get("/cart/showCartItem")
+                   .then(response=>{
+                     let resultInfo = response.data;
+                         this.cartItem = resultInfo.data;
+                         this.route = this.cartItem.route;
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            }
+        },
+        mounted() {
+            this.showCartItem();
+        }
+    })
+</script>
+</body>
+</html>

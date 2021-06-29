@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--扫描业务类-->
+    <context:component-scan base-package="com.travel.service"/>
+    <context:component-scan base-package="com.travel.utils"/>
+
+    <!--加载属性配置文件-->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+
+    <!--配置数据源对象-->
+    <bean class="com.alibaba.druid.pool.DruidDataSource" id="dataSource">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!--创建会话工厂类 , 帮助你创建接口的代理对象-->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sessionFactory">
+        <!--注入数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--加载mybatis-config.xml配置文件-->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!--开启别名扫描， 扫描实体类-->
+        <property name="typeAliasesPackage" value="com.travel.domain"/>
+    </bean>
+
+    <!--创建映射扫描的配置类, 这里专门用于扫描dao包，扫描到接口就会交给sqlSession去创建代理对象-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" id="mapperScannerConfigurer">
+        <!--注入basePackage属性，指定dao接口所在包-->
+        <property name="basePackage" value="com.travel.dao"/>
+    </bean>
+
+
+    <!--==================================操作service层，service主要是控制事务=======================================-->
+
+    <!--配置事务管理器-->
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--编写事务通知规则 : 定义方法使用事务的规则，哪些方法需要使用，哪些方法不需要事务的规则
+       查询的方法是不需要事务，其他的方法是需要事务
+   -->
+    <tx:advice id="ad" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="find*" propagation="SUPPORTS"/>
+            <tx:method name="get*" propagation="SUPPORTS"/>
+            <tx:method name="search*" propagation="SUPPORTS"/>
+            <tx:method name="query*" propagation="SUPPORTS"/>
+            <tx:method name="select*" propagation="SUPPORTS"/>
+            <tx:method name="*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!--配置切面-->
+    <aop:config>
+        <!--切入点表达式   作用： 匹配哪个包下面的那些类的方法是否起作用
+            切入点表达式 = 权限修饰符（可以省略） 返回值类型  包名.类名.方法名(形参列表)
+        -->
+        <aop:pointcut id="pt" expression="execution(* com.travel.service.impl.*.*(..))"/>
+
+        <aop:advisor advice-ref="ad" pointcut-ref="pt"/>
+    </aop:config>
+
+    <!--1. 配置redis的独立配置类， 编写redis的地址与端口-->
+    <bean class="org.springframework.data.redis.connection.RedisStandaloneConfiguration" id="standaloneConfiguration>">
+        <property name="hostName" value="localhost"/>
+        <property name="port" value="6379"/>
+    </bean>
+
+    <!--2. 创建redis连接工厂-->
+    <bean class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory" id="connectionFactory">
+        <constructor-arg ref="standaloneConfiguration>"/>
+    </bean>
+
+    <!--3. 创建redistemplate对象，并且转换器传入-->
+    <bean class="org.springframework.data.redis.core.RedisTemplate" id="redisTemplate">
+        <!--配置连接工厂-->
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <!--配置键序列化器-->
+        <property name="keySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+        </property>
+        <!--配置值的序列化器-->
+        <property name="valueSerializer">
+            <bean class="org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer"/>
+        </property>
+    </bean>
+
+</beans>

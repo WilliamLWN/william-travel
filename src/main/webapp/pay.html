@@ -1,0 +1,104 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/webbase.css">
+    <link rel="stylesheet" href="css/pages-weixinpay.css">
+
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/include.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+	
+	 <!-- 获取地址栏参数 -->
+    <script src="js/getParameter.js"></script>
+
+    <!-- 二维码插件 -->
+    <script type="text/javascript" src="js/qrcode.js"></script>
+    <title>微信支付</title>
+
+</head>
+<body>
+<header id="header"></header>
+<div class="container-fluid" id="app">
+    <div class="cart py-container">
+        <!--主内容-->
+        <div class="checkout py-container  pay">
+            <div class="checkout-tit">
+                <h4 class="fl tit-txt"><span class="success-icon"></span><span  class="success-info">订单提交成功，请您及时付款！订单号：{{oid}}</span></h4>
+                <span class="fr"><em class="sui-lead">应付金额：</em><em  class="orange money">￥{{total}}</em>元</span>
+                <div class="clearfix"></div>
+            </div>
+            <div class="checkout-steps">
+                <div class="fl weixin">微信支付</div>
+                <div class="fl sao">
+                    <div class="fl code">
+                       <div id="QRCode"></div>
+                    </div>
+					
+                    <div class="fl" style="background:url(./img/phone-bg.png) no-repeat;width:350px;height:400px;margin-left:40px"></div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!--引入尾部-->
+<footer id="footer"></footer>
+</body>
+
+<script type="text/javascript">
+    new Vue({
+        el:"#app",
+        data: {
+            oid:0,
+            total:0
+        },methods: {
+            //访问PayController得到一个预付款的链接地址，生成一个二维码
+            createPayUrl() {
+                this.oid = getParameter("oid");
+                this.total = getParameter("total");
+
+                axios.get(`/pay/createUrl?oid=${this.oid}&total=${this.total}`)
+                   .then(response=>{
+                     let payUrl = response.data;
+
+                       //使用预付款的链接生成一个二维码
+                     new QRCode("QRCode", payUrl);
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            },
+            // 每间隔1秒查询支付状态
+            checkOrderStatus() {
+                //开启定时任务
+                setInterval(()=>{
+                    axios.get(`/pay/findStatus?oid=${this.oid}`)
+                       .then(response=>{
+                         let isPay = response.data;
+                         if(isPay) {
+                             //已经支付了
+                             location.href=`/pay_success.html?total=${this.total}`;
+                         }
+                       })
+                },5000);
+            },
+            // 10分钟以后，跳转到pay_fail.html页面 表示支付失败
+            checkTimeout() {
+                setTimeout(()=>{
+                    location.href="/pay_fail.html";
+                },1*60*1000);
+            }
+        },
+        mounted() {
+            this.createPayUrl();
+            this.checkOrderStatus();
+            this.checkTimeout();
+        }
+    })
+</script>
+</html>

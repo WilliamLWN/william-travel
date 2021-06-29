@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace名称空间，名称空间代表该xml文件映射是哪个接口-->
+<mapper namespace="com.travel.dao.RouteDao">
+
+    <!--List<Route> findRouteByCid(Integer cid);-->
+    <select id="findRouteByCid" resultType="route">
+        select * from tab_route
+        <where>
+            <if test="cid!=0">
+                cid = #{cid}
+            </if>
+            <if test="rname!=null and rname!=''">
+                and rname like concat('%', #{rname}, '%')
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

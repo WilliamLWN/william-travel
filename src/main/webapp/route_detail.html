@@ -1,0 +1,160 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>路线详情</title>
+
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/getParameter.js"></script>
+    <script src="js/include.js"></script>
+
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="css/route-detail.css">
+</head>
+
+<body>
+<!--引入头部-->
+<div id="header"></div>
+<!-- 详情 start -->
+<div class="wrap">
+    <div class="bread_box">
+        <a href="index.html">首页</a>
+        <span> &gt;</span>
+        <a :href=`route_list.html?cid=${category.cid}`>{{category.cname}}</a><span> &gt;</span>
+        <a>{{route.rname}}</a>
+    </div>
+    <div class="prosum_box">
+        <dl class="prosum_left">
+            <dt>
+                <img alt="" class="big_img"
+                     :src="routeImgList[0].bigPic">
+            </dt>
+            <dd>
+                <a class="up_img up_img_disable"></a>
+                <a title="" class="little_img" v-for="(routeImg,index) in routeImgList"
+                   :data-bigpic="routeImg.bigPic" :style="{display:index<4?'block':'none'}">
+                    <img :src="routeImg.smallPic">
+                </a>
+                <a class="down_img down_img_disable" style="margin-bottom: 0;"></a>
+            </dd>
+        </dl>
+        <div class="prosum_right">
+            <p class="pros_title">{{route.rname}}</p>
+            <p class="hot">{{route.routeIntroduce}}</p>
+            <div class="pros_other">
+                <p>经营商家 ：{{seller.sname}}</p>
+                <p>咨询电话 : {{seller.consphone}}</p>
+                <p>地址 ： {{seller.address}}</p>
+            </div>
+            <div class="pros_price">
+                <p class="price">
+                    <strong>￥{{route.price}}</strong>
+                </p>
+                <div class="p_number">
+                    <div class="f_l add_chose">
+                        <input type="text" name="num" value="1" id="num" class="text" v-model="num"/>
+                    </div>
+                    <span class="collect">
+                         <a class="btn" href="javascript:;" id="addCart" @click="addCart()"><i class="glyphicon glyphicon-heart-empty"></i>加入购物车</a>
+                    </span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="you_need_konw">
+        <span>旅游须知</span>
+        <div class="notice">
+            <p>1、旅行社已投保旅行社责任险。建议游客购买旅游意外保险 <br>
+
+            <p>
+                2、旅游者参加打猎、潜水、海边游泳、漂流、滑水、滑雪、滑草、蹦极、跳伞、滑翔、乘热气球、骑马、赛车、攀岩、水疗、水上飞机等属于高风险性游乐项目的，敬请旅游者务必在参加前充分了解项目的安全须知并确保身体状况能适应此类活动；如旅游者不具备较好的身体条件及技能，可能会造成身体伤害。</p>
+
+            <p>
+                3、参加出海活动时，请务必穿着救生设备。参加水上活动应注意自己的身体状况，有心脏病、冠心病、高血压、感冒、发烧和饮酒及餐后不可以参加水上活动及潜水。在海里活动时，严禁触摸海洋中各种鱼类，水母，海胆，珊瑚等海洋生物，避免被其蛰伤。老人和小孩必须有成年人陪同才能参加合适的水上活动。在海边游玩时，注意保管好随身携带的贵重物品。</p>
+
+            <p>4、根据中国海关总署的规定，旅客在境外购买的物品，在进入中国海关时可能需要征收关税。详细内容见《中华人民共和国海关总署公告2010年第54号文件》。</p>
+
+            <p>5、建议出发时行李托运，贵重物品、常用物品、常用药品、御寒衣物等请随身携带，尽量不要托运。行李延误属于不可抗力因素，我司将全力协助客人跟进后续工作，但我司对此不承担任何责任。</p>
+            <p>1、旅行社已投保旅行社责任险。建议游客购买旅游意外保险 <br>
+
+            <p>
+                2、旅游者参加打猎、潜水、海边游泳、漂流、滑水、滑雪、滑草、蹦极、跳伞、滑翔、乘热气球、骑马、赛车、攀岩、水疗、水上飞机等属于高风险性游乐项目的，敬请旅游者务必在参加前充分了解项目的安全须知并确保身体状况能适应此类活动；如旅游者不具备较好的身体条件及技能，可能会造成身体伤害。</p>
+
+            <p>
+                3、参加出海活动时，请务必穿着救生设备。参加水上活动应注意自己的身体状况，有心脏病、冠心病、高血压、感冒、发烧和饮酒及餐后不可以参加水上活动及潜水。在海里活动时，严禁触摸海洋中各种鱼类，水母，海胆，珊瑚等海洋生物，避免被其蛰伤。老人和小孩必须有成年人陪同才能参加合适的水上活动。在海边游玩时，注意保管好随身携带的贵重物品。</p>
+
+            <p>4、根据中国海关总署的规定，旅客在境外购买的物品，在进入中国海关时可能需要征收关税。详细内容见《中华人民共和国海关总署公告2010年第54号文件》。</p>
+
+            <p>5、建议出发时行李托运，贵重物品、常用物品、常用药品、御寒衣物等请随身携带，尽量不要托运。行李延误属于不可抗力因素，我司将全力协助客人跟进后续工作，但我司对此不承担任何责任。</p>
+        </div>
+    </div>
+</div>
+<!-- 详情 end -->
+<!--引入头部-->
+<div id="footer"></div>
+<script src="js/play-ani.js"></script> 
+<script type="text/javascript">
+    new Vue({
+        el:"div.wrap", //用类选择器绑定是这样，也可以设id绑定
+        data: {
+            rid:"",  //旅游路线的id
+            category:{},  //类别
+            route:{},  //旅游路线
+            seller:{}, //商家
+            routeImgList: [], //旅游路线的图片,
+            //购物车数量
+            num: 1
+        },
+        methods: {
+            showDetails() {
+                this.rid = getParameter("rid");
+                axios.get("/route/findRouteByRid?rid=" + this.rid)
+                   .then(response=>{
+                     this.route = response.data;
+                     this.category = this.route.category;
+                     this.seller = this.route.seller;
+                     this.routeImgList = this.route.routeImgList;
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            },
+            addCart() {
+                // 1. 判断数量是否大于0
+                if(this.num < 0) {
+                    alert("购物数量必须大于0");
+                    this.num = 1;
+                    return;
+                }
+                // 2. 访问控制器：`cart/addCart?num=${this.num}&rid=${this.rid}`
+                axios.get(`/cart/addCart?num=${this.num}&rid=${this.rid}`)
+                   .then(response=>{
+                       // 3. 得到返回的结果对象
+                       let resultInfo = response.data;
+                       // 4. 显示返回的信息
+                       alert(resultInfo.message);
+                       if(resultInfo.success) {
+                           // 5. 如果成功跳转到cart_success.html页面
+                           location.href = "/cart_success.html";
+                       } else {
+                           // 6. 如果被拦截就跳转到登录页面
+                           location.href = "/login.html";
+                       }
+                   })
+                   .catch(error=>{
+                      alert(error);
+                      console.log(error);
+                })
+            }
+        },
+        mounted() {
+            this.showDetails();
+        }
+
+    })
+</script>
+</body>
+</html>

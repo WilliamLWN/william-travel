@@ -1,0 +1,68 @@
+﻿.zpagenav {
+	text-align: left;
+	-webkit-user-select: none;
+}
+
+.zpagetotal {
+	font-size: 14px;
+    font-weight: bolder;
+	color: brown;
+	padding-bottom: 4px;
+	border-bottom: 3px solid orange;
+}
+
+.zpagenav {
+	font-family: arial;
+	color: #444;
+}
+
+.zpagenav ul {
+	display: inline-block;
+	margin: 15px 0px;
+	padding: 0;
+}
+
+.zpagenav ul li {
+	display: inline-block;
+	margin: 2px;
+	padding: 0 4px;
+	border: 1px solid #d1dbe5;
+	background: #fff;
+	font-size: 13px;
+	min-width: 36px;
+	height: 36px;
+	line-height: 36px;
+	cursor: pointer;
+	box-sizing: border-box;
+	text-align: center;
+	border-radius: 4px;
+}
+
+.zpagenav ul li:last-child {
+	border-right: 1px solid #d1dbe5;
+}
+
+.zpagenav ul li:hover {
+	color: #ffc900;
+	border: 1px solid #ffc900;
+}
+
+.zpagenav ul li.active {
+	border-color: #ffc900;
+	background-color: #ffc900;
+	color: #fff;
+	cursor: default;
+}
+
+.zpagenav ul li.active:hover {
+	color: #fff;
+}
+
+.zpagenav ul li.disabled {
+	cursor: not-allowed;
+	color: #e4e4e4;
+}
+
+.zpagenav ul li.dot {
+	cursor: default;
+}
